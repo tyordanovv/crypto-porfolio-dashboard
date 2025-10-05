@@ -1,0 +1,8 @@
+[package]
+name = "telemetry"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+metrics-exporter-prometheus = "0.17.2"
+tracing-subscriber = "0.3.20"

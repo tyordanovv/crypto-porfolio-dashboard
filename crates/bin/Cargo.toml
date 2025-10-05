@@ -1,0 +1,12 @@
+[package]
+name = "bin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dex_core = { path = "../dex_core" }
+ingester = { path = "../ingester" }
+store = { path = "../store" }
+detector = { path = "../detector" }
+telemetry = { path = "../telemetry" }
+tokio.workspace = true

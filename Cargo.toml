@@ -1,0 +1,15 @@
+[workspace]
+members = [
+    "crates/dex_core",
+    "crates/ingester",
+    "crates/store",
+    "crates/detector",
+    "crates/telemetry",
+    "crates/utils",
+    "crates/bin",
+]
+resolver = "2"
+
+[workspace.dependencies]
+tokio = { version = "1.0", features = ["full"] }
+dashmap = "6"
