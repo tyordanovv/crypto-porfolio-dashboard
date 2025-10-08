@@ -1,5 +1,6 @@
+use core::PoolPrice;
+
 use dashmap::DashMap;
-use dex_core::PoolPrice;
 
 #[derive(Clone)]
 pub struct HotStore {

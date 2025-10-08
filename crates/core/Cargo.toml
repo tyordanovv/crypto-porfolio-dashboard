@@ -1,9 +1,9 @@
 [package]
-name = "bin"
+name = "core"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-store = { path = "../store" }
-telemetry = { path = "../telemetry" }
+async-trait.workspace = true
+serde.workspace = true
 tokio.workspace = true

@@ -1,9 +1,9 @@
 [package]
-name = "bin"
+name = "api"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
+core = { path = "../core" }
 store = { path = "../store" }
 telemetry = { path = "../telemetry" }
-tokio.workspace = true

@@ -39,6 +39,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "api"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "store",
+ "telemetry",
+]
+
+[[package]]
+name = "arbitrage"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "tokio",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -104,9 +121,6 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 name = "bin"
 version = "0.1.0"
 dependencies = [
- "detector",
- "dex_core",
- "ingester",
  "store",
  "telemetry",
  "tokio",
@@ -198,6 +212,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "core"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "serde",
+ "tokio",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -240,21 +263,6 @@ dependencies = [
  "lock_api",
  "once_cell",
  "parking_lot_core",
-]
-
-[[package]]
-name = "detector"
-version = "0.1.0"
-dependencies = [
- "dex_core",
-]
-
-[[package]]
-name = "dex_core"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "serde",
 ]
 
 [[package]]
@@ -531,14 +539,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ingester"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "dex_core",
-]
-
-[[package]]
 name = "io-uring"
 version = "0.7.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -626,6 +626,14 @@ name = "log"
 version = "0.4.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
+
+[[package]]
+name = "longterm"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "tokio",
+]
 
 [[package]]
 name = "memchr"
@@ -739,6 +747,14 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+
+[[package]]
+name = "onchain"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "tokio",
+]
 
 [[package]]
 name = "openssl-probe"
@@ -1133,8 +1149,8 @@ dependencies = [
 name = "store"
 version = "0.1.0"
 dependencies = [
+ "core",
  "dashmap",
- "dex_core",
 ]
 
 [[package]]
@@ -1315,10 +1331,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
-name = "utils"
-version = "0.1.0"
-
-[[package]]
 name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1430,6 +1442,14 @@ checksum = "9367c417a924a74cae129e6a2ae3b47fabb1f8995595ab474029da749a8be120"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "web2"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "tokio",
 ]
 
 [[package]]
@@ -1621,6 +1641,14 @@ name = "wit-bindgen"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
+
+[[package]]
+name = "yields"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "tokio",
+]
 
 [[package]]
 name = "zerocopy"

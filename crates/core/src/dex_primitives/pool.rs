@@ -19,8 +19,3 @@ pub struct SpreadEvent {
     pub spread_pct: f64,
     pub ts: u128,
 }
-
-#[async_trait::async_trait]
-pub trait DexAdapter: Send + Sync {
-    async fn poll_prices(&self) -> Vec<PoolPrice>;
-}
