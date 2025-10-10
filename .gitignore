@@ -1,2 +1,6 @@
 /target
 doc.*
+.env
+.env.test
+pgdata/
+docker-compose.yml

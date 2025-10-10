@@ -15,7 +15,26 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-tokio = { version = "1.0", features = ["full"] }
-dashmap = "6"
-serde = { version = "1.0", features = ["derive"] }
+# Async runtime
+tokio = { version = "1.31", features = ["full"] }
 async-trait = "0.1"
+
+# Database
+diesel = { version = "2.3", features = ["postgres", "r2d2", "chrono", "uuid"] }
+r2d2 = "0.8"
+
+# Serialization / Data
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.107"
+chrono = { version = "0.4.28", features = ["serde"] }
+uuid = { version = "1.18.1", features = ["serde", "v4"] }
+
+# Concurrency / Data structures
+dashmap = { version = "7.0.0-rc2" }
+
+# Environment
+dotenvy = "0.15"
+
+# Error handling
+thiserror = "1.0.46"
+anyhow = "1.0.77"
