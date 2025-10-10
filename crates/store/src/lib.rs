@@ -1,4 +1,4 @@
-use core::PoolPrice;
+use domain::PoolPrice;
 
 use dashmap::DashMap;
 
