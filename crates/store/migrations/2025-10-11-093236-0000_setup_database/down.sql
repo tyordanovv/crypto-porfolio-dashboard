@@ -1,3 +1,4 @@
+-- This file should undo anything in `up.sql`
 DROP TABLE IF EXISTS strategy_signals;
 DROP TABLE IF EXISTS sentiment_data;
 DROP TABLE IF EXISTS indicators;

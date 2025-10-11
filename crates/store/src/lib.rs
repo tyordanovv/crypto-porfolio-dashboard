@@ -1,3 +1,8 @@
+pub mod repositories;
+pub mod db;
+pub mod schema;
+pub mod models;
+
 use domain::PoolPrice;
 
 use dashmap::DashMap;
