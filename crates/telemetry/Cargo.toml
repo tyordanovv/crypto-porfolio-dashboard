@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 metrics-exporter-prometheus = "0.17.2"
-tracing-subscriber = "0.3.20"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }

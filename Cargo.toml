@@ -10,7 +10,8 @@ members = [
     "crates/strategy/longterm",
     # "crates/simd", 
     "crates/api", 
-    "crates/bin",
+    "crates/bin", 
+    "crates/worker", 
 ]
 resolver = "2"
 
@@ -18,6 +19,10 @@ resolver = "2"
 # Async runtime
 tokio = { version = "1.31", features = ["full"] }
 async-trait = "0.1"
+futures = "0.3.31"
+
+# HTTP Client
+reqwest = { version = "0.12.23", features = ["json"]}
 
 # Database
 diesel = { version = "2.3", features = ["postgres", "r2d2", "chrono", "uuid"] }
@@ -38,3 +43,6 @@ dotenvy = "0.15"
 # Error handling
 thiserror = "1.0.46"
 anyhow = "1.0.77"
+
+# Logging / Telemetry
+tracing = "0.1.38"

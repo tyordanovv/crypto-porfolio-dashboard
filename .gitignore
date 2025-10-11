@@ -4,3 +4,4 @@ doc.*
 .env.test
 pgdata/
 docker-compose.yml
+scripts/

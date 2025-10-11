@@ -2,8 +2,7 @@ use anyhow::{Context, Result};
 use std::collections::HashMap;
 use crate::client::Web2Client;
 use crate::models::{
-    CryptoPrice, GlobalMarketData, 
-    CoinGeckoSimplePrice, CoinGeckoGlobal
+    CoinGeckoGlobal, CoinGeckoSimplePrice, CoinMarketCapData, CoinMarketCapPoint, CoinMarketCapResponseData, CryptoPrice, GlobalMarketData
 };
 
 pub struct MarketDataFetcher<'a> {
@@ -49,9 +48,19 @@ impl<'a> MarketDataFetcher<'a> {
     }
 
     pub async fn fetch_global_market_data(&self) -> Result<GlobalMarketData> {
-        let url = "https://api.coingecko.com/api/v3/global";
+        let url = "https://api.coinmarketcap.com/data-api/v4/global-metrics/quotes/historical?convertId=2781&range=30d";
 
-        let response: CoinGeckoGlobal = self.client
+        // let response: CoinGeckoGlobal = self.client
+        //     .http()
+        //     .get(url)
+        //     .send()
+        //     .await
+        //     .context("Failed to fetch global market data")?
+        //     .json()
+        //     .await
+        //     .context("Failed to parse global market data")?;
+
+        let response: CoinMarketCapResponseData = self.client
             .http()
             .get(url)
             .send()
@@ -60,40 +69,27 @@ impl<'a> MarketDataFetcher<'a> {
             .json()
             .await
             .context("Failed to parse global market data")?;
+        
+        let target_ts = response.data.yearlyPerformance.high.timestamp.parse::<i64>().ok().unwrap();
 
-        let total_market_cap = response
-            .data
-            .total_market_cap
-            .get("usd")
-            .copied()
-            .context("USD market cap not found")?;
+        let last_full_day = response.data.points.iter().find(|p| {
+            if let Ok(ts) = p.timestamp.parse::<u64>() {
+                (ts as i64 - target_ts as i64).abs() < 3600
+            } else {
+                false
+            }
+        }).unwrap();
+        
 
-        let total_volume = response
-            .data
-            .total_volume
-            .get("usd")
-            .copied()
-            .context("USD volume not found")?;
-
-        let btc_dominance = response
-            .data
-            .market_cap_percentage
-            .get("btc")
-            .copied()
-            .context("BTC dominance not found")?;
-
-        let eth_dominance = response
-            .data
-            .market_cap_percentage
-            .get("eth")
-            .copied()
-            .context("BTC dominance not found")?;
+        println!("✅ Found latest full day:");
+        println!("MarketCap: {}", last_full_day.marketCap);
+        println!("StableValue: {}", last_full_day.stableValue);
+        println!("Volume: {}", last_full_day.volume);
 
         Ok(GlobalMarketData {
-            total_market_cap_usd: total_market_cap,
-            total_volume_24h_usd: total_volume,
-            btc_dominance,
-            eth_dominance,
+            total_market_cap_usd: last_full_day.marketCap,
+            total_stable_cap_usd: last_full_day.stableValue,
+            total_volume_24h_usd: last_full_day.volume
         })
     }
 
@@ -110,4 +106,16 @@ impl<'a> MarketDataFetcher<'a> {
 
         futures::future::join_all(futures).await
     }
+
+    // fn get_latest_full_day(&self, data: &CoinMarketCapData) -> Option<&CoinMarketCapPoint> {
+    //     let target_ts = data.yearlyPerformance.high.timestamp.parse::<u64>().ok()?;
+
+    //     data.points.iter().find(|p| {
+    //         if let Ok(ts) = p.timestamp.parse::<u64>() {
+    //             (ts as i64 - target_ts as i64).abs() < 3600 // within 1 hour tolerance
+    //         } else {
+    //             false
+    //         }
+    //     })
+    // }
 }
