@@ -7,3 +7,5 @@ pub use models::*;
 
 pub use dex_primitives::adapter::DexAdapter;
 pub use dex_primitives::pool::{PoolPrice, SpreadEvent};
+
+pub use utils::{current_timestamp_ms, normalize_symbol};

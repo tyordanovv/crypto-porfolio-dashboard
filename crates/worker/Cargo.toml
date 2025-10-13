@@ -11,3 +11,4 @@ tracing.workspace = true
 dotenvy.workspace = true
 telemetry = { path = "../telemetry" }
 web2 = { path = "../ingester/web2" }
+domain = { path = "../domain" }

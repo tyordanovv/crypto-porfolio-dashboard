@@ -1,7 +1,5 @@
-use std::time::Duration;
-
 use anyhow::Result;
-use chrono::{NaiveDate, Utc};
+use chrono::Utc;
 use tokio::time::{interval_at, Instant};
 use web2::{Web2Client, MacroDataFetcher, MarketDataFetcher};
 
@@ -100,6 +98,8 @@ impl DailyIngestionWorker {
 
         let global_data = market_fetcher.fetch_global_market_data().await?;
 
+        // TODO compute BTC_dominance, ETH_dominance, BTC_stable_ratio, BTC_return_7d, BTC_return_30d, BTC_return_90d, BTC_volatility, BTC_momentum
+
         Ok(IngestionResult {
             timestamp: Utc::now(),
             fear_greed,
@@ -146,10 +146,13 @@ impl DailyIngestionWorker {
             match result {
                 Ok(price) => {
                     tracing::info!(
-                        "{}: ${:.2} (cap: ${:.0})",
+                        "{}: ${:.2} 7d: ${:.2}, 30d: ${:.2}, 90d: ${:.2}, vol24h: ${:.0}",
                         price.symbol,
                         price.price_usd,
-                        price.market_cap_usd.unwrap_or(0.0)
+                        price.price_usd_7d_ago,
+                        price.price_usd_30d_ago,
+                        price.price_usd_90d_ago,
+                        price.volume_24h_usd
                     );
                     // TODO: Implement repository insert
                     // MarketDataRepo::insert(&mut conn, &price)?;
@@ -162,10 +165,12 @@ impl DailyIngestionWorker {
 
         // Store global market data
         tracing::info!(
-            "Total Market Cap: ${:.2}B, Total Stable Coin Cap: ${:.2}B, Total Volume: ${},",
+            "Total Market Cap: ${:.2}B, Total Stable Coin Cap: ${:.2}B, Total Volume: ${}, BTC Cap: ${:.2}B, ETH Cap: ${:.2}B",
             result.global_data.total_market_cap_usd / 1_000_000_000.0,
             result.global_data.total_stable_cap_usd / 1_000_000_000.0,
-            result.global_data.total_volume_24h_usd
+            result.global_data.total_volume_24h_usd,
+            result.global_data.total_btc_cap_usd / 1_000_000_000.0,
+            result.global_data.total_eth_cap_usd / 1_000_000_000.0
         );
         // TODO: Implement repository insert
         // GlobalMarketDataRepo::insert(&mut conn, &result.global_data)?;

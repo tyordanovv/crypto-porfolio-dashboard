@@ -2339,11 +2339,14 @@ name = "web2"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "domain",
  "futures",
  "reqwest",
  "serde",
+ "serde_json",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -2630,6 +2633,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "domain",
  "dotenvy",
  "telemetry",
  "tokio",

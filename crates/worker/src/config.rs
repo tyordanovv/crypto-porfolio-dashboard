@@ -17,6 +17,8 @@ impl Default for WorkerConfig {
                 "T10Y2Y".to_string(),   // 10Y-2Y Treasury Spread
                 "DEXUSEU".to_string(),  // USD/EUR Exchange Rate
                 "CPIAUCSL".to_string(), // Consumer Price Index
+                "DGS10".to_string(),    // 10-Year Treasury Constant Maturity Rate
+                "M2SL".to_string(),     // M2 Money Stock
             ],
             crypto_pairs: vec![
                 ("bitcoin".to_string(), "BTC-USD".to_string()),
