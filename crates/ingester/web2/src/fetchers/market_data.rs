@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use crate::GlobalCryptoMarketData;
 use crate::clients::{Web2Client, YahooClient, MarketSymbol};
-use crate::models::{CoinMarketCapPoint, CoinMarketCapResponseData, CryptoPrice, MarketPrice, YahooChart};
+use crate::models::{CoinMarketCapPoint, CoinMarketCapResponseData, MarketPrice};
 use chrono::{DateTime, Utc};
 
 pub struct MarketDataFetcher<'a> {
@@ -16,66 +16,6 @@ impl<'a> MarketDataFetcher<'a> {
     ) -> Self {
         Self { http_client, yahoo_client }
     }
-
-    // pub async fn fetch_crypto_price(
-    //     &self,
-    //     now: DateTime<Utc>,
-    //     symbol: &str,
-    // ) -> Result<CryptoPrice> {
-    //     let url = format!("https://query1.finance.yahoo.com/v8/finance/chart/{}?interval=1d&range=3mo", symbol);
-
-    //     let resp: YahooChart = self.http_client
-    //         .http()
-    //         .get(&url)
-    //         .send()
-    //         .await
-    //         .context("Failed to fetch Yahoo Finance data")?
-    //         .json()
-    //         .await
-    //         .context("Failed to parse Yahoo Finance JSON")?;
-
-    //     let chart_result = resp
-    //         .chart
-    //         .result
-    //         .ok_or_else(|| anyhow::anyhow!("No chart result for symbol"))?
-    //         .into_iter()
-    //         .next()
-    //         .ok_or_else(|| anyhow::anyhow!("Empty chart result"))?;
-
-    //     let timestamps = chart_result
-    //         .timestamp
-    //         .ok_or_else(|| anyhow::anyhow!("No timestamps in chart"))?;
-
-    //     let quote = chart_result
-    //         .indicators
-    //         .quote
-    //         .into_iter()
-    //         .next()
-    //         .ok_or_else(|| anyhow::anyhow!("No quote data"))?;
-
-    //     let closes = quote.close;
-    //     let volumes = quote.volume;
-
-    //     if timestamps.len() != closes.len() || timestamps.len() != volumes.len() {
-    //         return Err(anyhow::anyhow!("Length mismatch in Yahoo chart data"));
-    //     }
-
-    //     let last_price = closes.last().and_then(|c| *c).unwrap_or(0.0);
-    //     let last_volume = volumes.last().and_then(|v| *v).unwrap_or(0.0);
-
-    //     let price_7d_ago = self.find_closest(&timestamps, &closes, (now - Duration::days(7)).timestamp());
-    //     let price_30d_ago = self.find_closest(&timestamps, &closes, (now - Duration::days(30)).timestamp());
-    //     let price_90d_ago = self.find_closest(&timestamps, &closes, (now - Duration::days(90)).timestamp());
-
-    //     Ok(CryptoPrice {
-    //         symbol: symbol.to_string(),
-    //         price_usd: last_price,
-    //         price_usd_7d_ago: price_7d_ago,
-    //         price_usd_30d_ago: price_30d_ago,
-    //         price_usd_90d_ago: price_90d_ago,
-    //         volume_24h_usd: last_volume,
-    //     })
-    // }
 
     pub async fn fetch_global_market_data(&self) -> Result<GlobalCryptoMarketData> {
         let url = "https://api.coinmarketcap.com/data-api/v4/global-metrics/quotes/historical?convertId=2781&range=30d";
