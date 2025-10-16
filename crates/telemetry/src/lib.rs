@@ -10,7 +10,7 @@ pub fn setup_observability() {
     tracing_subscriber::registry()
         .with(
             EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new("info"))
+                .unwrap_or_else(|_| EnvFilter::new("debug,reqwest=info,hyper=warn,h2=warn")) // debug by default, but quieter for HTTP libraries
         )
         .with(fmt::layer().with_target(true).with_thread_ids(true))
         .init();

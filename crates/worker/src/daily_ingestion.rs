@@ -1,19 +1,21 @@
 use anyhow::Result;
 use chrono::Utc;
 use tokio::time::{interval_at, Instant};
-use web2::{Web2Client, MacroDataFetcher, MarketDataFetcher};
+use web2::{FearGreedIndex, FredIndicator, GlobalCryptoMarketData, GlobalM2Data, MacroDataFetcher, MarketDataFetcher, clients::{MarketSymbol, Web2Client, YahooDataFetcher}, models::MarketPrice};
 
 use crate::config::WorkerConfig;
 
 pub struct DailyIngestionWorker {
-    client: Web2Client,
+    http_client: Web2Client,
+    yahoo_client: YahooDataFetcher,
     config: WorkerConfig,
 }
 
 impl DailyIngestionWorker {
     pub fn new(fred_api_key: String, config: WorkerConfig) -> Self {
-        let client = Web2Client::new(fred_api_key);
-        Self { client, config }
+        let http_client = Web2Client::new(fred_api_key);
+        let yahoo_client  = YahooDataFetcher::new();
+        Self { http_client, yahoo_client, config }
     }
 
     pub async fn run(&self) -> Result<()> {
@@ -73,30 +75,41 @@ impl DailyIngestionWorker {
     }
 
     async fn fetch_all_data(&self) -> Result<IngestionResult> {
-        let macro_fetcher = MacroDataFetcher::new(&self.client);
-        let market_fetcher = MarketDataFetcher::new(&self.client);
+        let macro_fetcher = MacroDataFetcher::new(&self.http_client, &self.yahoo_client);
+        let market_fetcher = MarketDataFetcher::new(&self.http_client, &self.yahoo_client);
 
         // Fetch macro data
         let fear_greed = macro_fetcher.fetch_fear_greed_index().await.ok();
 
         let fred_series_refs: Vec<&str> = 
             self.config.fred_series.iter().map(|s| s.as_str()).collect();
+        
         let fred_indicators = macro_fetcher
             .fetch_multiple_fred_indicators(&fred_series_refs)
             .await;
 
+        // let global_m2_data = match macro_fetcher.fetch_global_m2_data().await {
+        //     Ok(data) => data,
+        //     Err(e) => {
+        //         tracing::error!("Failed to fetch global M2 data: {:?}", e);
+        //         return Err(e);
+        //     }
+        // };
+
         // Fetch market data
-        let coin_pairs: Vec<(&str, &str)> = self.config
-            .crypto_pairs
+        let now = Utc::now();
+
+        let combined: Vec<MarketSymbol> = self.config.crypto_pairs
             .iter()
-            .map(|(id, sym)| (id.as_str(), sym.as_str()))
+            .chain(self.config.market_series.iter())
+            .cloned()
             .collect();
 
         let crypto_prices = market_fetcher
-            .fetch_multiple_prices(&coin_pairs)
+            .fetch_multiple_crypto_prices(now, combined)
             .await;
 
-        let global_data = market_fetcher.fetch_global_market_data().await?;
+        let global_crypto_data = market_fetcher.fetch_global_market_data().await?;
 
         // TODO compute BTC_dominance, ETH_dominance, BTC_stable_ratio, BTC_return_7d, BTC_return_30d, BTC_return_90d, BTC_volatility, BTC_momentum
 
@@ -105,7 +118,8 @@ impl DailyIngestionWorker {
             fear_greed,
             fred_indicators,
             crypto_prices,
-            global_data,
+            global_crypto_data,
+            // global_m2_data
         })
     }
 
@@ -158,7 +172,7 @@ impl DailyIngestionWorker {
                     // MarketDataRepo::insert(&mut conn, &price)?;
                 }
                 Err(e) => {
-                    tracing::warn!("Failed to fetch {}: {}", symbol, e);
+                    tracing::warn!("Failed to fetch {}: {}", symbol.as_str(), e);
                 }
             }
         }
@@ -166,11 +180,11 @@ impl DailyIngestionWorker {
         // Store global market data
         tracing::info!(
             "Total Market Cap: ${:.2}B, Total Stable Coin Cap: ${:.2}B, Total Volume: ${}, BTC Cap: ${:.2}B, ETH Cap: ${:.2}B",
-            result.global_data.total_market_cap_usd / 1_000_000_000.0,
-            result.global_data.total_stable_cap_usd / 1_000_000_000.0,
-            result.global_data.total_volume_24h_usd,
-            result.global_data.total_btc_cap_usd / 1_000_000_000.0,
-            result.global_data.total_eth_cap_usd / 1_000_000_000.0
+            result.global_crypto_data.total_market_cap_usd / 1_000_000_000.0,
+            result.global_crypto_data.total_stable_cap_usd / 1_000_000_000.0,
+            result.global_crypto_data.total_volume_24h_usd,
+            result.global_crypto_data.total_btc_cap_usd / 1_000_000_000.0,
+            result.global_crypto_data.total_eth_cap_usd / 1_000_000_000.0
         );
         // TODO: Implement repository insert
         // GlobalMarketDataRepo::insert(&mut conn, &result.global_data)?;
@@ -182,8 +196,9 @@ impl DailyIngestionWorker {
 #[derive(Debug)]
 struct IngestionResult {
     timestamp: chrono::DateTime<Utc>,
-    fear_greed: Option<web2::FearGreedIndex>,
-    fred_indicators: Vec<(String, Result<web2::FredIndicator>)>,
-    crypto_prices: Vec<(String, Result<web2::CryptoPrice>)>,
-    global_data: web2::GlobalMarketData,
+    fear_greed: Option<FearGreedIndex>,
+    fred_indicators: Vec<(String, Result<FredIndicator>)>,
+    crypto_prices: Vec<(MarketSymbol, Result<MarketPrice>)>,
+    global_crypto_data: GlobalCryptoMarketData,
+    // global_m2_data: GlobalM2Data,
 }

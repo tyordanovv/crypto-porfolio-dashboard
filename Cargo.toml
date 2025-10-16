@@ -33,6 +33,7 @@ serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.107"
 chrono = { version = "0.4.28", features = ["serde"] }
 uuid = { version = "1.18.1", features = ["serde", "v4"] }
+time = { version = "0.3.0-alpha-2" }
 
 # Concurrency / Data structures
 dashmap = { version = "7.0.0-rc2" }
@@ -46,3 +47,6 @@ anyhow = "1.0.77"
 
 # Logging / Telemetry
 tracing = "0.1.38"
+
+# Finace / Crypto
+yahoo_finance_api = "4.1.0"

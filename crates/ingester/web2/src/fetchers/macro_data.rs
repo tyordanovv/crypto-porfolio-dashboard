@@ -1,22 +1,26 @@
 use anyhow::{Context, Result};
-use crate::client::Web2Client;
-use crate::models::{
-    FearGreedIndex, FearGreedResponse, FredIndicator, FredResponse
-};
+use chrono::{DateTime, Utc};
+use crate::{clients::{MarketSymbol, Web2Client, YahooDataFetcher}, models::{
+    FearGreedIndex, FearGreedResponse, FredIndicator, FredResponse, GlobalM2Data, M2DataPoint, MarketPrice
+}};
 
 pub struct MacroDataFetcher<'a> {
-    client: &'a Web2Client,
+    http_client: &'a Web2Client,
+    yahoo_client: &'a YahooDataFetcher,
 }
 
 impl<'a> MacroDataFetcher<'a> {
-    pub fn new(client: &'a Web2Client) -> Self {
-        Self { client }
+    pub fn new(
+        http_client: &'a Web2Client,
+        yahoo_client: &'a YahooDataFetcher,
+    ) -> Self {
+        Self { http_client, yahoo_client }
     }
 
     pub async fn fetch_fear_greed_index(&self) -> Result<FearGreedIndex> {
         let url = "https://api.alternative.me/fng/?limit=1";
         
-        let response: FearGreedResponse = self.client
+        let response: FearGreedResponse = self.http_client
             .http()
             .get(url)
             .send()
@@ -43,10 +47,10 @@ impl<'a> MacroDataFetcher<'a> {
             "https://api.stlouisfed.org/fred/series/observations\
              ?series_id={}&api_key={}&file_type=json&sort_order=desc&limit=1",
             series_id,
-            self.client.fred_api_key()
+            self.http_client.fred_api_key()
         );
 
-        let response: FredResponse = self.client
+        let response: FredResponse = self.http_client
             .http()
             .get(&url)
             .send()
@@ -78,6 +82,30 @@ impl<'a> MacroDataFetcher<'a> {
                 let result = self.fetch_fred_indicator(id).await;
                 (id.to_string(), result)
             });
+
+        futures::future::join_all(futures).await
+    }
+
+    // pub async fn fetch_global_m2_data(&self) -> Result<GlobalM2Data> {
+    //     // First try direct access (might work for public endpoints)
+    //     Ok(() as GlobalM2Data)
+    // }
+    
+    pub async fn fetch_multiple_market_prices(
+        &self,
+        date: DateTime<Utc>,
+        symbols: &Vec<MarketSymbol>,
+    ) -> Vec<(MarketSymbol, Result<MarketPrice>)> {
+        let futures = symbols.iter().map(|symbol| {
+            let symbol_owned = symbol.clone();
+            async move {
+                let result = self.yahoo_client
+                    .fetch_market_data(date, &symbol_owned)
+                    .await;
+
+                (symbol_owned, result)
+            }
+        });
 
         futures::future::join_all(futures).await
     }

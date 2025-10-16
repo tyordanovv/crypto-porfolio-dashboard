@@ -8,9 +8,10 @@ pub struct Web2Client {
 
 impl Web2Client {
     pub fn new(fred_api_key: String) -> Self {
+
         let http = Client::builder()
             .timeout(Duration::from_secs(30))
-            .user_agent("CryptoPortfolio/1.0")
+            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
             .build()
             .expect("Failed to create HTTP client");
 
