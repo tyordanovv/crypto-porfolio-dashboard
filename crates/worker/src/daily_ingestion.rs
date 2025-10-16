@@ -1,20 +1,20 @@
 use anyhow::Result;
 use chrono::Utc;
 use tokio::time::{interval_at, Instant};
-use web2::{FearGreedIndex, FredIndicator, GlobalCryptoMarketData, GlobalM2Data, MacroDataFetcher, MarketDataFetcher, clients::{MarketSymbol, Web2Client, YahooDataFetcher}, models::MarketPrice};
+use web2::{FearGreedIndex, FredIndicator, GlobalCryptoMarketData, MacroDataFetcher, MarketDataFetcher, clients::{MarketSymbol, Web2Client, YahooClient}, models::MarketPrice};
 
-use crate::config::WorkerConfig;
+use crate::config::DailyWorkerConfig;
 
 pub struct DailyIngestionWorker {
     http_client: Web2Client,
-    yahoo_client: YahooDataFetcher,
-    config: WorkerConfig,
+    yahoo_client: YahooClient,
+    config: DailyWorkerConfig,
 }
 
 impl DailyIngestionWorker {
-    pub fn new(fred_api_key: String, config: WorkerConfig) -> Self {
+    pub fn new(fred_api_key: String, config: DailyWorkerConfig) -> Self {
         let http_client = Web2Client::new(fred_api_key);
-        let yahoo_client  = YahooDataFetcher::new();
+        let yahoo_client  = YahooClient::new();
         Self { http_client, yahoo_client, config }
     }
 
@@ -88,14 +88,6 @@ impl DailyIngestionWorker {
             .fetch_multiple_fred_indicators(&fred_series_refs)
             .await;
 
-        // let global_m2_data = match macro_fetcher.fetch_global_m2_data().await {
-        //     Ok(data) => data,
-        //     Err(e) => {
-        //         tracing::error!("Failed to fetch global M2 data: {:?}", e);
-        //         return Err(e);
-        //     }
-        // };
-
         // Fetch market data
         let now = Utc::now();
 
@@ -118,8 +110,7 @@ impl DailyIngestionWorker {
             fear_greed,
             fred_indicators,
             crypto_prices,
-            global_crypto_data,
-            // global_m2_data
+            global_crypto_data
         })
     }
 
@@ -200,5 +191,4 @@ struct IngestionResult {
     fred_indicators: Vec<(String, Result<FredIndicator>)>,
     crypto_prices: Vec<(MarketSymbol, Result<MarketPrice>)>,
     global_crypto_data: GlobalCryptoMarketData,
-    // global_m2_data: GlobalM2Data,
 }

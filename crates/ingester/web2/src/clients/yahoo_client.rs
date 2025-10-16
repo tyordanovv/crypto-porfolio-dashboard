@@ -42,11 +42,11 @@ impl MarketSymbol {
     }
 }
 
-pub struct YahooDataFetcher {
+pub struct YahooClient {
     provider: yahoo::YahooConnector,
 }
 
-impl YahooDataFetcher {
+impl YahooClient {
     pub fn new() -> Self {
         Self {
             provider: yahoo::YahooConnector::new().unwrap(),

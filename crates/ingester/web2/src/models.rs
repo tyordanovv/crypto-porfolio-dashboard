@@ -128,47 +128,9 @@ pub(crate) struct CoinMarketCapPoint {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct M2DataPoint {
-    #[serde(rename = "Date")]
+    pub country: String,
     pub date: String,
-    
-    #[serde(rename = "Global_M2")]
-    pub global_m2: Option<f64>,
-    
-    #[serde(rename = "US_M2")]
-    pub us_m2: Option<f64>,
-    
-    #[serde(rename = "Euro_M2")]
-    pub euro_m2: Option<f64>,
-    
-    #[serde(rename = "China_M2")]
-    pub china_m2: Option<f64>,
-    
-    #[serde(rename = "Japan_M2")]
-    pub japan_m2: Option<f64>,
-    
-    #[serde(rename = "US_M2_Pct")]
-    pub us_m2_pct: Option<f64>,
-    
-    #[serde(rename = "Euro_M2_Pct")]
-    pub euro_m2_pct: Option<f64>,
-    
-    #[serde(rename = "China_M2_Pct")]
-    pub china_m2_pct: Option<f64>,
-    
-    #[serde(rename = "Japan_M2_Pct")]
-    pub japan_m2_pct: Option<f64>,
-    
-    #[serde(rename = "Euro_M2_Local")]
-    pub euro_m2_local: Option<f64>,
-    
-    #[serde(rename = "China_M2_Local")]
-    pub china_m2_local: Option<f64>,
-    
-    #[serde(rename = "Japan_M2_Local")]
-    pub japan_m2_local: Option<f64>,
-    
-    #[serde(rename = "Global_M2_Local")]
-    pub global_m2_local: Option<f64>,
+    pub m2: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,18 +1,18 @@
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
-use crate::{clients::{MarketSymbol, Web2Client, YahooDataFetcher}, models::{
-    FearGreedIndex, FearGreedResponse, FredIndicator, FredResponse, GlobalM2Data, M2DataPoint, MarketPrice
+use crate::{clients::{MarketSymbol, Web2Client, YahooClient}, models::{
+    FearGreedIndex, FearGreedResponse, FredIndicator, FredResponse, MarketPrice
 }};
 
 pub struct MacroDataFetcher<'a> {
     http_client: &'a Web2Client,
-    yahoo_client: &'a YahooDataFetcher,
+    yahoo_client: &'a YahooClient,
 }
 
 impl<'a> MacroDataFetcher<'a> {
     pub fn new(
         http_client: &'a Web2Client,
-        yahoo_client: &'a YahooDataFetcher,
+        yahoo_client: &'a YahooClient,
     ) -> Self {
         Self { http_client, yahoo_client }
     }
@@ -90,7 +90,7 @@ impl<'a> MacroDataFetcher<'a> {
     //     // First try direct access (might work for public endpoints)
     //     Ok(() as GlobalM2Data)
     // }
-    
+
     pub async fn fetch_multiple_market_prices(
         &self,
         date: DateTime<Utc>,

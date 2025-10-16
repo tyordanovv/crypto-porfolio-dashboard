@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use web2::clients::MarketSymbol;
+use web2::clients::{M2Country, MarketSymbol};
 
 #[derive(Debug, Clone)]
-pub struct WorkerConfig {
+pub struct DailyWorkerConfig {
     pub fred_series: Vec<String>,
     pub crypto_pairs: Vec<MarketSymbol>,
     pub market_series: Vec<MarketSymbol>,
@@ -12,7 +12,7 @@ pub struct WorkerConfig {
     pub retry_delay: Duration,
 }
 
-impl Default for WorkerConfig {
+impl Default for DailyWorkerConfig {
     fn default() -> Self {
         Self {
             fred_series: vec![
@@ -37,6 +37,32 @@ impl Default for WorkerConfig {
                 MarketSymbol::Nasdaq,
                 MarketSymbol::UsdIndex,
 
+            ],
+            fetch_interval: Duration::from_secs(24 * 60 * 60), // 24 hours
+            max_retries: 3,
+            retry_delay: Duration::from_secs(60),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct MontlyWorkerConfig {
+    pub m2_countries: Vec<M2Country>,
+    pub fetch_interval: Duration,
+    pub max_retries: u32,
+    pub retry_delay: Duration,
+}
+
+impl Default for MontlyWorkerConfig {
+    fn default() -> Self {
+        Self {
+            m2_countries: vec![
+                M2Country::US,
+                M2Country::EU,
+                M2Country::UK,
+                M2Country::Japan,
+                M2Country::Canada,
+                M2Country::China
             ],
             fetch_interval: Duration::from_secs(24 * 60 * 60), // 24 hours
             max_retries: 3,

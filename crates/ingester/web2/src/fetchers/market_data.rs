@@ -1,18 +1,18 @@
 use anyhow::{Context, Result};
 use crate::GlobalCryptoMarketData;
-use crate::clients::{Web2Client, YahooDataFetcher, MarketSymbol};
+use crate::clients::{Web2Client, YahooClient, MarketSymbol};
 use crate::models::{CoinMarketCapPoint, CoinMarketCapResponseData, CryptoPrice, MarketPrice, YahooChart};
 use chrono::{DateTime, Utc};
 
 pub struct MarketDataFetcher<'a> {
     http_client: &'a Web2Client,
-    yahoo_client: &'a YahooDataFetcher,
+    yahoo_client: &'a YahooClient,
 }
 
 impl<'a> MarketDataFetcher<'a> {
     pub fn new(
         http_client: &'a Web2Client,
-        yahoo_client: &'a YahooDataFetcher
+        yahoo_client: &'a YahooClient
     ) -> Self {
         Self { http_client, yahoo_client }
     }
