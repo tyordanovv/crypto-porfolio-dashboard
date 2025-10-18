@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 
-use crate::{models::sentiment_db::SentimentDataDB, repositories::{sentiment_repository::SentimentRepo, tests::establish_test_pool}};
+use crate::{models::market_metrics_db::SentimentDataDB, repositories::{market_metrics_repository::SentimentRepo, tests::establish_test_pool}};
 
 
 fn create_record(date: (i32, u32, u32), value: f64) -> SentimentDataDB {

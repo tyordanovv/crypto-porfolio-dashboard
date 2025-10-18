@@ -3,7 +3,7 @@ pub mod indicators_tests;
 #[cfg(test)]
 pub mod market_data_tests;
 #[cfg(test)]
-pub mod sentiment_tests;
+pub mod market_metrics_tests;
 #[cfg(test)]
 pub mod signal_tests;
 

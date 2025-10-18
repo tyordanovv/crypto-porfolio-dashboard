@@ -26,7 +26,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    sentiment_data (name, timestamp) {
+    market_metrics (name, timestamp) {
         #[max_length = 128]
         name -> Varchar,
         timestamp -> Date,
@@ -54,6 +54,6 @@ diesel::table! {
 diesel::allow_tables_to_appear_in_same_query!(
     indicators,
     market_data,
-    sentiment_data,
+    market_metrics,
     strategy_signals,
 );

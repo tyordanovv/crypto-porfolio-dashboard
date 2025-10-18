@@ -1,7 +1,7 @@
 pub mod repositories;
 pub mod db;
-pub mod schema;
 pub mod models;
+pub mod schema;
 
 use domain::PoolPrice;
 
