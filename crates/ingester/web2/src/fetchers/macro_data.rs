@@ -1,7 +1,8 @@
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
-use crate::{clients::{MarketSymbol, Web2Client, YahooClient}, models::{
-    FearGreedIndex, FearGreedResponse, FredIndicator, FredResponse, MarketPrice
+use domain::{FearGreedIndexData, FredIndexData, MarketPrice, MarketSymbol};
+use crate::{FxEmpireM2Point, clients::{M2Country, Web2Client, YahooClient}, models::{
+    FearGreedResponse, FredResponse, M2DataPoint
 }};
 
 pub struct MacroDataFetcher<'a> {
@@ -17,7 +18,7 @@ impl<'a> MacroDataFetcher<'a> {
         Self { http_client, yahoo_client }
     }
 
-    pub async fn fetch_fear_greed_index(&self) -> Result<FearGreedIndex> {
+    pub async fn fetch_fear_greed_index(&self) -> Result<FearGreedIndexData> {
         let url = "https://api.alternative.me/fng/?limit=1";
         
         let response: FearGreedResponse = self.http_client
@@ -35,14 +36,14 @@ impl<'a> MacroDataFetcher<'a> {
             .first()
             .context("No Fear & Greed data available")?;
 
-        Ok(FearGreedIndex {
+        Ok(FearGreedIndexData {
             value: item.value.parse().context("Invalid value")?,
             classification: item.value_classification.clone(),
             timestamp: item.timestamp.parse().context("Invalid timestamp")?,
         })
     }
 
-    pub async fn fetch_fred_indicator(&self, series_id: &str) -> Result<FredIndicator> {
+    pub async fn fetch_fred_indicator(&self, series_id: &str) -> Result<FredIndexData> {
         let url = format!(
             "https://api.stlouisfed.org/fred/series/observations\
              ?series_id={}&api_key={}&file_type=json&sort_order=desc&limit=1",
@@ -65,7 +66,7 @@ impl<'a> MacroDataFetcher<'a> {
             .first()
             .context("No observations available")?;
 
-        Ok(FredIndicator {
+        Ok(FredIndexData {
             series_id: series_id.to_string(),
             value: obs.value.parse().context("Invalid value")?,
             date: obs.date.clone(),
@@ -75,7 +76,7 @@ impl<'a> MacroDataFetcher<'a> {
     pub async fn fetch_multiple_fred_indicators(
         &self,
         series_ids: &[&str],
-    ) -> Vec<(String, Result<FredIndicator>)> {
+    ) -> Vec<(String, Result<FredIndexData>)> {
         let futures = series_ids
             .iter()
             .map(|id| async move {
@@ -86,11 +87,53 @@ impl<'a> MacroDataFetcher<'a> {
         futures::future::join_all(futures).await
     }
 
-    // pub async fn fetch_global_m2_data(&self) -> Result<GlobalM2Data> {
-    //     // First try direct access (might work for public endpoints)
-    //     Ok(() as GlobalM2Data)
-    // }
+    pub async fn fetch_global_m2_data(
+        &self,
+        countries: &Vec<M2Country>,
+    ) -> Vec<(M2Country, Result<M2DataPoint>)> {
+        let futures = countries.iter().map(|country| {
+            let country_clone = country.clone();
 
+            async move {
+                let url = format!(
+                    "https://www.fxempire.com/api/v1/en/macro-indicators/{}/money-supply-m2/history?latest=120&frequency=Monthly",
+                    country_clone.as_fxempire_symbol()
+                );
+
+                let result = async {
+                    let resp: Vec<FxEmpireM2Point> = self.http_client
+                        .http()
+                        .get(&url)
+                        .send()
+                        .await
+                        .context(format!("Failed to fetch M2 data for {}", country_clone.as_str()))?
+                        .json()
+                        .await
+                        .context("Failed to parse M2 response")?;
+
+                    // If multiple points exist, take the latest one
+                    let latest_point = resp
+                        .into_iter()
+                        .max_by_key(|p| p.formatted_date.clone())
+                        .context("No M2 data points available")?;
+
+                    Ok(M2DataPoint {
+                        country: country_clone.as_str().to_string(),
+                        iso_code: country_clone.as_fxempire_symbol().to_string(),
+                        currency: country_clone.as_currency_code().to_string(),
+                        date: latest_point.formatted_date,
+                        m2: latest_point.value,
+                    })
+                }
+                .await;
+
+                (country_clone, result)
+            }
+        });
+
+        futures::future::join_all(futures).await
+    }
+    
     pub async fn fetch_multiple_market_prices(
         &self,
         date: DateTime<Utc>,

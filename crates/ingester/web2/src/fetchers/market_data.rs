@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
-use crate::GlobalCryptoMarketData;
-use crate::clients::{Web2Client, YahooClient, MarketSymbol};
-use crate::models::{CoinMarketCapPoint, CoinMarketCapResponseData, MarketPrice};
+use domain::{GlobalCryptoMarketData, MarketPrice, MarketSymbol};
+use crate::clients::{Web2Client, YahooClient};
+use crate::models::{CoinMarketCapPoint, CoinMarketCapResponseData};
 use chrono::{DateTime, Utc};
 
 pub struct MarketDataFetcher<'a> {
@@ -46,10 +46,10 @@ impl<'a> MarketDataFetcher<'a> {
         let last_full_day = points_sorted.get(1).map(|(_, p)| *p).unwrap(); // TODO handle error
 
         Ok(GlobalCryptoMarketData {
-            total_market_cap_usd: last_full_day.marketCap,
-            total_stable_cap_usd: last_full_day.stableValue,
-            total_btc_cap_usd: last_full_day.btcValue,
-            total_eth_cap_usd: last_full_day.ethValue,
+            total_market_cap_usd: last_full_day.market_cap,
+            total_stable_cap_usd: last_full_day.stable_value,
+            total_btc_cap_usd: last_full_day.btc_value,
+            total_eth_cap_usd: last_full_day.eth_value,
             total_volume_24h_usd: last_full_day.volume
         })
     }

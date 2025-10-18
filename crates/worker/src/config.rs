@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use web2::clients::{M2Country, MarketSymbol};
+use domain::MarketSymbol;
+use web2::clients::M2Country;
 
 #[derive(Debug, Clone)]
 pub struct DailyWorkerConfig {

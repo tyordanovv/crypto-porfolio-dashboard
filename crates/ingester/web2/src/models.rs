@@ -1,86 +1,4 @@
-use serde::{Deserialize, Deserializer, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FearGreedIndex {
-    pub value: f64,
-    pub classification: String,
-    pub timestamp: i64,
-}
-
-#[derive(Debug, Clone)]
-pub struct MarketPrice {
-    pub symbol: String,
-    pub price_usd: f64,
-    pub price_usd_7d_ago: f64,
-    pub price_usd_30d_ago: f64,
-    pub price_usd_90d_ago: f64,
-    pub volume_24h_usd: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FredIndicator {
-    pub series_id: String,
-    pub value: f64,
-    pub date: String,
-}
-
-#[derive(Debug)]
-pub struct CryptoPrice {
-    pub symbol: String,
-    pub price_usd: f64,
-    pub price_usd_7d_ago: f64,
-    pub price_usd_30d_ago: f64,
-    pub price_usd_90d_ago: f64,
-    pub volume_24h_usd: u64,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) struct YahooChart {
-    pub chart: ChartData,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) struct ChartData {
-    pub result: Option<Vec<ChartResult>>,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) struct ChartResult {
-    pub timestamp: Option<Vec<i64>>,
-    pub indicators: Indicators,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) struct Indicators {
-    pub quote: Vec<Quote>,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) struct Quote {
-    pub close: Vec<Option<f64>>,
-    pub volume: Vec<Option<f64>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GlobalCryptoMarketData {
-    pub total_market_cap_usd: f64,
-    pub total_stable_cap_usd: f64,
-    pub total_btc_cap_usd: f64,
-    pub total_eth_cap_usd: f64,
-    pub total_volume_24h_usd: f64,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct AdvancedMetrics{
-    pub btc_dominance: f64,
-    pub eth_dominance: f64,
-    pub btc_stable_ratio: f64,
-    pub btc_return_7d: f64,
-    pub btc_return_30d: f64,
-    pub btc_return_90d: f64,
-    pub btc_volatility: f64,
-    pub btc_momentum: f64,
-}
+use serde::{Deserialize, Serialize};
 
 // API Response structures (internal)
 #[derive(Debug, Deserialize)]
@@ -118,10 +36,14 @@ pub(crate) struct CoinMarketCapData {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct CoinMarketCapPoint {
-    pub marketCap: f64,
-    pub stableValue: f64,
-    pub btcValue: f64,
-    pub ethValue: f64,
+    #[serde(rename = "marketCap")]
+    pub market_cap: f64,
+    #[serde(rename = "stableValue")]
+    pub stable_value: f64,
+    #[serde(rename = "btcValue")]
+    pub btc_value: f64,
+    #[serde(rename = "ethValue")]
+    pub eth_value: f64,
     pub volume: f64,
     pub timestamp: String,
 }
@@ -129,11 +51,16 @@ pub(crate) struct CoinMarketCapPoint {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct M2DataPoint {
     pub country: String,
+    pub iso_code: String,
+    pub currency: String,
     pub date: String,
     pub m2: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GlobalM2Data {
-    pub data_points: Vec<M2DataPoint>,
+#[derive(Debug, Deserialize)]
+pub struct FxEmpireM2Point {
+    #[serde(rename = "formattedDate")]
+    pub formatted_date: String,
+    #[serde(rename = "close")]
+    pub value: f64,
 }

@@ -2,7 +2,6 @@ use std::time::Duration;
 
 use anyhow::Result;
 use chrono::{Utc};
-use tokio::time::{Instant, interval_at};
 
 use crate::util::sleep_until_next_month;
 

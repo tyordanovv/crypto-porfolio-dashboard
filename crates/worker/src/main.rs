@@ -27,14 +27,14 @@ async fn main() -> Result<()> {
 
     // --- Monthly Job ---
     let monthly_job = MonthlyIngestionJob::new(fred_api_key.clone(), MontlyWorkerConfig::default());
-    let monthly_scheduler = MonthlyScheduler;
+    let monthly_scheduler = MonthlyScheduler::new();
     let monthly_worker = IngestionWorker::new(monthly_job, monthly_scheduler, 3, std::time::Duration::from_secs(60));
 
     // Run both concurrently
-    tokio::join!(
+    tokio::try_join!(
         daily_worker.run(),
         monthly_worker.run(),
-    );
+    )?;
 
     Ok(())
 }

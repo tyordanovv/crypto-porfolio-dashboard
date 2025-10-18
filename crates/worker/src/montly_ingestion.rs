@@ -1,6 +1,6 @@
 use anyhow::Result;
 use chrono::Utc;
-use web2::{GlobalM2Data, MacroDataFetcher, clients::{Web2Client, YahooClient}};
+use web2::{MacroDataFetcher, clients::{M2Country, Web2Client, YahooClient}, models::M2DataPoint};
 use crate::config::MontlyWorkerConfig;
 use super::framework::IngestionJob;
 
@@ -13,7 +13,7 @@ pub struct MonthlyIngestionJob {
 #[derive(Debug)]
 pub struct MonthlyIngestionResult {
     timestamp: chrono::DateTime<Utc>,
-    global_m2_data: GlobalM2Data,
+    global_m2_data: Vec<(M2Country, Result<M2DataPoint>)>,
 }
 
 impl MonthlyIngestionJob {
@@ -33,15 +33,21 @@ impl IngestionJob for MonthlyIngestionJob {
 
     async fn fetch_all(&self) -> Result<Self::Output> {
         let macro_fetcher = MacroDataFetcher::new(&self.http_client, &self.yahoo_client);
-        let global_m2_data = macro_fetcher.fetch_global_m2_data().await?;
+        let global_m2_data = macro_fetcher.fetch_global_m2_data(&self.config.m2_countries).await;
         Ok(MonthlyIngestionResult {
             timestamp: Utc::now(),
             global_m2_data,
         })
     }
 
-    async fn store(&self, _result: Self::Output) -> Result<()> {
-        // TODO implement storage
+    async fn store(&self, result: Self::Output) -> Result<()> {
+        for (symbol, result) in result.global_m2_data {
+            match result {
+                Ok(m2_data) => tracing::info!( "M2 Data for {} {}: {}{:.2} on {}", m2_data.country, m2_data.iso_code, m2_data.currency, m2_data.m2, m2_data.date
+                ),
+                Err(e) => tracing::warn!("Failed to fetch {}: {}", symbol.as_str(), e),
+            }
+        }
         Ok(())
     }
 }
