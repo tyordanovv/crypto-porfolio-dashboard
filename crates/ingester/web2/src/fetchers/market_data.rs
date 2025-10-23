@@ -43,7 +43,8 @@ impl<'a> MarketDataFetcher<'a> {
         points_sorted.sort_by(|a, b| b.0.cmp(&a.0));
 
         // pick the second largest
-        let last_full_day = points_sorted.get(1).map(|(_, p)| *p).unwrap(); // TODO handle error
+        let last_full_day = points_sorted.get(1).map(|(_, p)| *p).unwrap();
+    
 
         Ok(GlobalCryptoMarketData {
             total_market_cap_usd: last_full_day.market_cap,

@@ -3,6 +3,7 @@ use diesel::prelude::*;
 use diesel::dsl::insert_into;
 use diesel::result::Error as DieselError;
 use diesel::upsert::excluded;
+use domain::MarketSymbol;
 use crate::db::PgPooledConnection;
 use crate::models::market_data_db::MarketDataDB;
 use crate::schema::market_data;
@@ -11,7 +12,7 @@ use crate::schema::market_data;
 pub struct MarketDataRepo;
 
 impl MarketDataRepo {
-    pub fn insert(conn: &mut PgPooledConnection, rec: &MarketDataDB) -> Result<usize, DieselError> {
+    pub async fn insert(conn: &mut PgPooledConnection, rec: &MarketDataDB) -> Result<usize, DieselError> {
         insert_into(market_data::table)
             .values(rec)
             .on_conflict((market_data::asset_symbol, market_data::timestamp))
@@ -25,15 +26,19 @@ impl MarketDataRepo {
             .execute(conn)
     }
 
-    pub fn latest_for_asset(conn: &mut PgPooledConnection, symbol: &str) -> Result<Option<MarketDataDB>, DieselError> {
+    pub async fn latest_n_for_asset(
+        conn: &mut PgPooledConnection, 
+        symbol: MarketSymbol, 
+        limit: i64
+    ) -> Result<Vec<MarketDataDB>, DieselError> {
         market_data::table
-            .filter(market_data::asset_symbol.eq(symbol))
+            .filter(market_data::asset_symbol.eq(symbol.as_str()))
             .order(market_data::timestamp.desc())
-            .first::<MarketDataDB>(conn)
-            .optional()
+            .limit(limit)
+            .load::<MarketDataDB>(conn)
     }
 
-    pub fn range_for_asset(
+    pub async fn range_for_asset(
         conn: &mut PgPooledConnection,
         symbol: &str,
         from: NaiveDate,

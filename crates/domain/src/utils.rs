@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use time::OffsetDateTime;
 
 pub fn current_timestamp_ms() -> u128 {
@@ -20,4 +20,9 @@ pub fn normalize_symbol(coin_id: &str) -> String {
 pub fn chrono_to_offset(dt: DateTime<Utc>) -> OffsetDateTime {
     OffsetDateTime::from_unix_timestamp(dt.timestamp())
         .expect("Invalid timestamp conversion")
+}
+
+pub fn native_date_from_str(date: &str) -> NaiveDate {
+    NaiveDate::parse_from_str(date, "%Y-%m-%d")
+        .expect("Invalid date conversion")
 }

@@ -14,62 +14,65 @@ fn create_market_data(symbol: &str, date: (i32, u32, u32), price: f64) -> Market
     }
 }
 
-#[test]
-fn test_insert_market_data() {
+#[tokio::test]
+async fn test_insert_market_data() {
     let pool = establish_test_pool();
     let mut conn = pool.get().unwrap();
 
     let rec = create_market_data("BTC", (2024, 10, 1), 68_000.0);
-    let inserted = MarketDataRepo::insert(&mut conn, &rec).expect("insert failed");
+    let inserted = MarketDataRepo::insert(&mut conn, &rec)
+        .await
+        .expect("Insert failed");
+
     assert_eq!(inserted, 1);
 }
 
-#[test]
-fn test_latest_market_data() {
+#[tokio::test]
+async fn test_latest_market_data() {
     let pool = establish_test_pool();
     let mut conn = pool.get().unwrap();
 
     let rec1 = create_market_data("BTC", (2024, 10, 1), 68_000.0);
     let rec2 = create_market_data("BTC", (2024, 10, 2), 69_500.0);
 
-    MarketDataRepo::insert(&mut conn, &rec1).unwrap();
-    MarketDataRepo::insert(&mut conn, &rec2).unwrap();
+    MarketDataRepo::insert(&mut conn, &rec1);
+    MarketDataRepo::insert(&mut conn, &rec2);
 
-    let latest = MarketDataRepo::latest_for_asset(&mut conn, "BTC").unwrap().unwrap();
-    assert_eq!(latest.timestamp, rec2.timestamp);
-    assert_eq!(latest.price_usd, rec2.price_usd);
+    let latest = MarketDataRepo::latest_n_for_asset(&mut conn, domain::MarketSymbol::BtcUsd, 1).await.unwrap();
+    assert_eq!(latest.get(0).unwrap().timestamp, rec2.timestamp);
+    assert_eq!(latest.get(0).unwrap().price_usd, rec2.price_usd);
 }
 
-#[test]
-fn test_range_market_data() {
+#[tokio::test]
+async fn test_range_market_data() {
     let pool = establish_test_pool();
     let mut conn = pool.get().unwrap();
 
     let rec1 = create_market_data("BTC", (2024, 10, 1), 68_000.0);
     let rec2 = create_market_data("BTC", (2024, 10, 2), 69_500.0);
 
-    MarketDataRepo::insert(&mut conn, &rec1).unwrap();
-    MarketDataRepo::insert(&mut conn, &rec2).unwrap();
+    MarketDataRepo::insert(&mut conn, &rec1).await.unwrap();
+    MarketDataRepo::insert(&mut conn, &rec2).await.unwrap();
 
-    let range = MarketDataRepo::range_for_asset(&mut conn, "BTC", rec1.timestamp, rec2.timestamp).unwrap();
+    let range = MarketDataRepo::range_for_asset(&mut conn, "BTC", rec1.timestamp, rec2.timestamp).await.unwrap();
     assert_eq!(range.len(), 2);
     assert_eq!(range[0].timestamp, rec1.timestamp);
     assert_eq!(range[1].timestamp, rec2.timestamp);
 }
 
-#[test]
-fn test_upsert_market_data() {
+#[tokio::test]
+async fn test_upsert_market_data() {
     let pool = establish_test_pool();
     let mut conn = pool.get().unwrap();
 
     let rec = create_market_data("BTC", (2024, 10, 1), 68_000.0);
-    MarketDataRepo::insert(&mut conn, &rec).unwrap();
+    MarketDataRepo::insert(&mut conn, &rec).await.unwrap();
 
     // Update price for the same timestamp
     let updated = create_market_data("BTC", (2024, 10, 1), 70_000.0);
-    MarketDataRepo::insert(&mut conn, &updated).unwrap();
+    MarketDataRepo::insert(&mut conn, &updated).await.unwrap();
 
-    let fetched = MarketDataRepo::range_for_asset(&mut conn, "BTC", rec.timestamp, rec.timestamp).unwrap();
+    let fetched = MarketDataRepo::range_for_asset(&mut conn, "BTC", rec.timestamp, rec.timestamp).await.unwrap();
     assert_eq!(fetched.len(), 1);
     assert_eq!(fetched[0].price_usd, 70_000.0);
 }

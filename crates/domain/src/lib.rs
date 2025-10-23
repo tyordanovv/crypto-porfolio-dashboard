@@ -14,4 +14,4 @@ pub use metrics::fred::FredIndexData;
 pub use metrics::market_price::{ MarketPrice, MarketSymbol };
 pub use metrics::global_crypto::GlobalCryptoMarketData;
 
-pub use utils::{current_timestamp_ms, normalize_symbol, chrono_to_offset};
+pub use utils::{current_timestamp_ms, normalize_symbol, chrono_to_offset, native_date_from_str};

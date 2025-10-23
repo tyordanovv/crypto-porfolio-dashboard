@@ -6,6 +6,7 @@ mod util;
 
 use anyhow::Result;
 use dotenvy::dotenv;
+use store::db::establish_pool;
 use telemetry::setup_observability;
 use crate::{
     config::{DailyWorkerConfig, MontlyWorkerConfig}, daily_ingestion::DailyIngestionJob, framework::{FixedIntervalScheduler, IngestionWorker, MonthlyScheduler}, montly_ingestion::MonthlyIngestionJob
@@ -19,9 +20,10 @@ async fn main() -> Result<()> {
     println!("Starting ingestion workers");
 
     let fred_api_key = std::env::var("FRED_API_KEY")?;
+    let db_pool = establish_pool();
 
     // --- Daily Job ---
-    let daily_job = DailyIngestionJob::new(fred_api_key.clone(), DailyWorkerConfig::default());
+    let daily_job = DailyIngestionJob::new(fred_api_key.clone(), DailyWorkerConfig::default(), db_pool.clone());
     let daily_scheduler = FixedIntervalScheduler::new(std::time::Duration::from_secs(24 * 60 * 60));
     let daily_worker = IngestionWorker::new(daily_job, daily_scheduler, 3, std::time::Duration::from_secs(60));
 

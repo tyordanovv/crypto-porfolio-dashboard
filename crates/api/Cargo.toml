@@ -4,6 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono.workspace = true
+serde.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+dotenvy.workspace = true
 domain = { path = "../domain" }
 store = { path = "../store" }
 telemetry = { path = "../telemetry" }
+actix-web = "4.11.0"

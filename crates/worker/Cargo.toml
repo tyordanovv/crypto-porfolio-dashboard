@@ -13,3 +13,4 @@ async-trait.workspace = true
 telemetry = { path = "../telemetry" }
 web2 = { path = "../ingester/web2" }
 domain = { path = "../domain" }
+store = { path = "../store" }

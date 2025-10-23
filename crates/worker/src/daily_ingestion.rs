@@ -1,6 +1,8 @@
 use anyhow::Result;
 use chrono::Utc;
-use domain::{AdvancedMetrics, FearGreedIndexData, FredIndexData, GlobalCryptoMarketData, MarketPrice, MarketSymbol};
+use domain::{AdvancedMetrics, FearGreedIndexData, FredIndexData, GlobalCryptoMarketData, MarketPrice, MarketSymbol, native_date_from_str};
+use store::{db::PgPool, models::{market_data_db::MarketDataDB, market_metrics_db::MarketMetricDataDB}, repositories::{market_data_repository::MarketDataRepo, market_metrics_repository::MarketMetricRepo}};
+use tracing::{info, warn};
 use web2::{ MacroDataFetcher, MarketDataFetcher, clients::{Web2Client, YahooClient} };
 use crate::{config::DailyWorkerConfig, framework::IngestionJob};
 
@@ -8,6 +10,7 @@ pub struct DailyIngestionJob {
     http_client: Web2Client,
     yahoo_client: YahooClient,
     config: DailyWorkerConfig,
+    db_pool: PgPool
 }
 
 #[derive(Debug)]
@@ -21,11 +24,12 @@ pub struct DailyIngestionResult {
 }
 
 impl DailyIngestionJob {
-    pub fn new(fred_api_key: String, config: DailyWorkerConfig) -> Self {
+    pub fn new(fred_api_key: String, config: DailyWorkerConfig, db_pool: PgPool) -> Self {
         Self {
             http_client: Web2Client::new(fred_api_key),
             yahoo_client: YahooClient::new(),
             config,
+            db_pool,
         }
     }
 }
@@ -67,48 +71,119 @@ impl IngestionJob for DailyIngestionJob {
     }
 
     async fn store(&self, result: Self::Output) -> Result<()> {
-        // Logging placeholders (replace with repo inserts)
-        tracing::info!("Ingestion Timestamp: {}", result.timestamp);
-        tracing::info!("Fear & Greed Index: {} ({})", result.fear_greed.value, result.fear_greed.classification);
+        use tracing::{info, warn};
 
-        for (series_id, result) in result.fred_indicators {
-            match result {
-                Ok(indicator) => tracing::info!(
-                    "FRED {}: {} ({})", indicator.series_id, indicator.value, indicator.date
-                ),
-                Err(e) => tracing::warn!("Failed to fetch {}: {}", series_id, e),
+        // Acquire connection asynchronously if your pool is async
+        let mut conn = self.db_pool.get()
+            .map_err(|e| anyhow::anyhow!("Failed to get DB connection: {e}"))?;
+
+        let date = result.timestamp.date_naive();
+
+        // === 1. Fear & Greed Index ===
+        let fg_value: f64 = result.fear_greed.value.parse().unwrap_or_default();
+        if let Err(e) = MarketMetricRepo::insert(
+            &mut conn,
+            &MarketMetricDataDB {
+                name: MarketSymbol::FearGreedIndex.as_str().into(),
+                timestamp: date,
+                value: Some(fg_value),
+                source: Some("alternative.me".into()),
+            },
+        ).await {
+            warn!("Failed to persist Fear & Greed Index: {e}");
+        }
+
+        // === 2. FRED indicators ===
+        for (series_id, res) in result.fred_indicators {
+            match res {
+                Ok(data) => {
+                    if let Err(e) = MarketMetricRepo::insert(
+                        &mut conn,
+                        &MarketMetricDataDB {
+                            name: data.series_id.clone(),
+                            timestamp: native_date_from_str(&data.date),
+                            value: Some(data.value),
+                            source: Some("fred".into()),
+                        },
+                    ).await {
+                        warn!("Failed to persist FRED {}: {}", series_id, e);
+                    }
+                }
+                Err(e) => warn!("Failed to fetch FRED {}: {}", series_id, e),
             }
         }
 
-        for (symbol, result) in result.crypto_prices {
-            match result {
-                Ok(price) => tracing::info!(
-                    "{}: ${:.2}, vol24h: ${:.0}",
-                    price.symbol.as_str(), price.price_usd, price.volume_24h_usd
-                ),
-                Err(e) => tracing::warn!("Failed to fetch {}: {}", symbol.as_str(), e),
+        // === 3. Crypto & market assets ===
+        for (symbol, res) in result.crypto_prices {
+            match res {
+                Ok(price) => {
+                    let rec = MarketDataDB {
+                        asset_symbol: symbol.as_str().to_string(),
+                        timestamp: date,
+                        price_usd: price.price_usd,
+                        volume_usd: Some(price.volume_24h_usd as f64),
+                        market_cap_usd: None,
+                        dominance: None,
+                    };
+                    if let Err(e) = MarketDataRepo::insert(&mut conn, &rec).await {
+                        warn!("Failed to persist {}: {}", symbol.as_str(), e);
+                    }
+                }
+                Err(e) => warn!("Failed to fetch {}: {}", symbol.as_str(), e),
             }
         }
 
-        tracing::info!(
-            "Advanced Metrics at {}: BTC Dominance: {:.2}%, ETH Dominance: {:.2}%, Stablecoin Dominance: {:.2}%, BTC/Stable Ratio: {:.2}, BTC 7d Return: {:.2}%, BTC 30d Return: {:.2}%, BTC 90d Return: {:.2}%",
-            result.advanced_metrics.timestamp,
-            result.advanced_metrics.btc_dominance,
-            result.advanced_metrics.eth_dominance,
-            result.advanced_metrics.stablecoin_dominance,
-            result.advanced_metrics.btc_stable_ratio,
-            result.advanced_metrics.btc_return_7d,
-            result.advanced_metrics.btc_return_30d,
-            result.advanced_metrics.btc_return_90d
-        );
+        // === 4. Global crypto data ===
+        let g = result.global_crypto_data;
+        let metrics = vec![
+            (MarketSymbol::GlobalTotalMarketCapUsd, g.total_market_cap_usd),
+            (MarketSymbol::GlobalTotalStableCapUsd, g.total_stable_cap_usd),
+            (MarketSymbol::GlobalTotalBtcCapUsd, g.total_btc_cap_usd),
+            (MarketSymbol::GlobalTotalEthCapUsd, g.total_eth_cap_usd),
+            (MarketSymbol::GlobalTotalVolume24hUsd, g.total_volume_24h_usd),
+        ];
 
-        tracing::info!(
-            "Total Market Cap: ${:.2}B, BTC Cap: ${:.2}B, ETH Cap: ${:.2}B",
-            result.global_crypto_data.total_market_cap_usd / 1_000_000_000.0,
-            result.global_crypto_data.total_btc_cap_usd / 1_000_000_000.0,
-            result.global_crypto_data.total_eth_cap_usd / 1_000_000_000.0
-        );
+        for (metric, value) in metrics {
+            if let Err(e) = MarketMetricRepo::insert(
+                &mut conn,
+                &MarketMetricDataDB {
+                    name: metric.as_str().into(),
+                    timestamp: date,
+                    value: Some(value),
+                    source: Some("coingecko".into()),
+                },
+            ).await {
+                warn!("Failed to persist global metric {}: {}", metric.as_str(), e);
+            }
+        }
 
+        // === 5. Advanced metrics ===
+        let a = result.advanced_metrics;
+        let adv_metrics = vec![
+            (MarketSymbol::BtcDominance, a.btc_dominance),
+            (MarketSymbol::EthDominance, a.eth_dominance),
+            (MarketSymbol::StablecoinDominance, a.stablecoin_dominance),
+            (MarketSymbol::BtcStableRatio, a.btc_stable_ratio),
+            (MarketSymbol::BtcReturn7d, a.btc_return_7d),
+            (MarketSymbol::BtcReturn30d, a.btc_return_30d),
+            (MarketSymbol::BtcReturn90d, a.btc_return_90d),
+        ];
+
+        for (adv_metric, value) in adv_metrics {
+            if let Err(e) = MarketMetricRepo::insert(
+                &mut conn,
+                &MarketMetricDataDB {
+                    name: adv_metric.as_str().into(),
+                    timestamp: a.timestamp.date_naive(),
+                    value: Some(value),
+                    source: Some("computed".into()),
+                },
+            ).await {
+                warn!("Failed to persist advanced metric {}: {}", adv_metric.as_str(), e);
+            }
+        }
+
+        info!("Daily data persisted successfully at {}", result.timestamp);
         Ok(())
     }
 }
