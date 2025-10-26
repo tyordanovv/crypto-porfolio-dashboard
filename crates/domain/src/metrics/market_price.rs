@@ -1,3 +1,6 @@
+use std::str::FromStr;
+use std::fmt;
+
 #[derive(Debug, Clone)]
 pub struct MarketPrice {
     pub symbol: MarketSymbol,
@@ -140,5 +143,56 @@ impl MarketSymbol {
             MarketSymbol::UNRATE,
             MarketSymbol::FEDFUNDS,
         ]
+    }
+}
+
+// Custom error type for parsing
+#[derive(Debug, Clone)]
+pub struct ParseMarketSymbolError(pub String);
+
+impl fmt::Display for ParseMarketSymbolError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Invalid MarketSymbol: {}", self.0)
+    }
+}
+
+impl std::error::Error for ParseMarketSymbolError {}
+
+impl FromStr for MarketSymbol {
+    type Err = ParseMarketSymbolError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.trim().to_uppercase().as_str() {
+            "BTC_USD" => Ok(MarketSymbol::BtcUsd),
+            "ETH_USD" => Ok(MarketSymbol::EthUsd),
+            "GOLD_USD" => Ok(MarketSymbol::Gold),
+            "OIL_USD" => Ok(MarketSymbol::Oil),
+            "SP500_USD" => Ok(MarketSymbol::Sp500),
+            "NASDAQ_USD" => Ok(MarketSymbol::Nasdaq),
+            "USD_INDEX_USD" => Ok(MarketSymbol::UsdIndex),
+            "DFF" => Ok(MarketSymbol::DFF),
+            "T10Y2Y" => Ok(MarketSymbol::T10Y2Y),
+            "DEXUSEU" => Ok(MarketSymbol::DEXUSEU),
+            "CPIAUCSL" => Ok(MarketSymbol::CPIAUCSL),
+            "DGS10" => Ok(MarketSymbol::DGS10),
+            "DGS2" => Ok(MarketSymbol::DGS2),
+            "M2SL" => Ok(MarketSymbol::M2SL),
+            "UNRATE" => Ok(MarketSymbol::UNRATE),
+            "FEDFUNDS" => Ok(MarketSymbol::FEDFUNDS),
+            "BTC_DOMINANCE" => Ok(MarketSymbol::BtcDominance),
+            "ETH_DOMINANCE" => Ok(MarketSymbol::EthDominance),
+            "STABLECOIN_DOMINANCE" => Ok(MarketSymbol::StablecoinDominance),
+            "BTC_STABLE_RATIO" => Ok(MarketSymbol::BtcStableRatio),
+            "BTC_RETURN_7D" => Ok(MarketSymbol::BtcReturn7d),
+            "BTC_RETURN_30D" => Ok(MarketSymbol::BtcReturn30d),
+            "BTC_RETURN_90D" => Ok(MarketSymbol::BtcReturn90d),
+            "GLOBAL_TOTAL_MARKET_CAP_USD" => Ok(MarketSymbol::GlobalTotalMarketCapUsd),
+            "GLOBAL_TOTAL_STABLE_CAP_USD" => Ok(MarketSymbol::GlobalTotalStableCapUsd),
+            "GLOBAL_TOTAL_BTC_CAP_USD" => Ok(MarketSymbol::GlobalTotalBtcCapUsd),
+            "GLOBAL_TOTAL_ETH_CAP_USD" => Ok(MarketSymbol::GlobalTotalEthCapUsd),
+            "GLOBAL_TOTAL_VOLUME_24H_USD" => Ok(MarketSymbol::GlobalTotalVolume24hUsd),
+            "FEAR_GREED_INDEX" => Ok(MarketSymbol::FearGreedIndex),
+            other => Err(ParseMarketSymbolError(other.to_string())),
+        }
     }
 }
