@@ -3,14 +3,10 @@ members = [
     "crates/domain",
     "crates/store",
     "crates/telemetry",
-    "crates/ingester/onchain",
     "crates/ingester/web2",
-    "crates/strategy/arbitrage",
     "crates/strategy/yields",
     "crates/strategy/longterm",
-    # "crates/simd", 
-    "crates/api", 
-    "crates/bin", 
+    "crates/api",
     "crates/worker", 
 ]
 resolver = "2"

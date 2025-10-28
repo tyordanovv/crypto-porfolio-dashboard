@@ -267,14 +267,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "arbitrage"
-version = "0.1.0"
-dependencies = [
- "domain",
- "tokio",
-]
-
-[[package]]
 name = "async-trait"
 version = "0.1.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -341,15 +333,6 @@ name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
-
-[[package]]
-name = "bin"
-version = "0.1.0"
-dependencies = [
- "store",
- "telemetry",
- "tokio",
-]
 
 [[package]]
 name = "bindgen"
@@ -1703,14 +1686,6 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
-
-[[package]]
-name = "onchain"
-version = "0.1.0"
-dependencies = [
- "domain",
- "tokio",
-]
 
 [[package]]
 name = "openssl"
