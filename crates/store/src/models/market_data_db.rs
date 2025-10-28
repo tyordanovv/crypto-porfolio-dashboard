@@ -10,6 +10,4 @@ pub struct MarketDataDB {
     pub timestamp: NaiveDate,
     pub price_usd: f64,
     pub volume_usd: Option<f64>,
-    pub market_cap_usd: Option<f64>,
-    pub dominance: Option<f64>,
 }

@@ -15,6 +15,8 @@ pub struct DashboardResponse {
 #[derive(Serialize)]
 pub struct AssetSnapshot {
     pub symbol: String,
+    #[serde(rename = "formattedName")]
+    pub formatted_name: String,
     pub prices: Vec<TimeSeriesPrice>,
     pub metrics: Vec<MarketMetric>
 }
@@ -23,6 +25,7 @@ impl AssetSnapshot {
     pub fn from_market_data(symbol: MarketSymbol, market_data: Vec<MarketDataDB>, market_metric: Vec<MarketMetricDataDB>) -> Self {
         Self {
             symbol: symbol.as_str().to_string(),
+            formatted_name: symbol.formatted_name().to_string(),
             prices: market_data
                 .into_iter()
                 .map(TimeSeriesPrice::from)
@@ -39,9 +42,7 @@ impl AssetSnapshot {
 pub struct TimeSeriesPrice { 
     pub timestamp: NaiveDate, 
     pub price_usd: f64, 
-    pub volume_usd: Option<f64>,
-    pub market_cap_usd: Option<f64>,
-    pub dominance: Option<f64>,
+    pub volume_usd: Option<f64>
 }
 
 impl From<MarketDataDB> for TimeSeriesPrice {
@@ -49,9 +50,7 @@ impl From<MarketDataDB> for TimeSeriesPrice {
         Self {
             timestamp: md.timestamp,
             price_usd: md.price_usd,
-            volume_usd: md.volume_usd,
-            market_cap_usd: md.market_cap_usd,
-            dominance: md.dominance,
+            volume_usd: md.volume_usd
         }
     }
 }
@@ -119,6 +118,7 @@ impl FearGreedIndex {
 #[derive(Serialize)]
 pub struct MacroMetrics {
     pub name: String,
+    #[serde(rename = "formattedName")]
     pub formatted_name: String,
     pub value: f64,
     pub source: Option<String>,

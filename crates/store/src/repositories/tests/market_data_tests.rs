@@ -8,9 +8,7 @@ fn create_market_data(symbol: &str, date: (i32, u32, u32), price: f64) -> Market
         asset_symbol: symbol.to_string(),
         timestamp: NaiveDate::from_ymd_opt(date.0, date.1, date.2).unwrap(),
         price_usd: price,
-        volume_usd: Some(35_000_000_000.0),
-        market_cap_usd: Some(1_300_000_000_000.0),
-        dominance: Some(51.2),
+        volume_usd: Some(35_000_000_000.0)
     }
 }
 

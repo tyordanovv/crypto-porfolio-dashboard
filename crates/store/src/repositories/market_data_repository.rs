@@ -20,8 +20,6 @@ impl MarketDataRepo {
             .set((
                 market_data::price_usd.eq(excluded(market_data::price_usd)),
                 market_data::volume_usd.eq(excluded(market_data::volume_usd)),
-                market_data::market_cap_usd.eq(excluded(market_data::market_cap_usd)),
-                market_data::dominance.eq(excluded(market_data::dominance)),
             ))
             .execute(conn)
     }

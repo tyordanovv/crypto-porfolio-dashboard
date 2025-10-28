@@ -120,9 +120,7 @@ impl IngestionJob for DailyIngestionJob {
                         asset_symbol: symbol.as_str().to_string(),
                         timestamp: date,
                         price_usd: price.price_usd,
-                        volume_usd: Some(price.volume_24h_usd as f64),
-                        market_cap_usd: None,
-                        dominance: None,
+                        volume_usd: Some(price.volume_24h_usd as f64)
                     };
                     if let Err(e) = MarketDataRepo::insert(&mut conn, &rec).await {
                         warn!("Failed to persist {}: {}", symbol.as_str(), e);

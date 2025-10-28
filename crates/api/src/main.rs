@@ -4,6 +4,7 @@ mod handlers;
 use std::env;
 
 use actix_web::{web, App, HttpServer};
+use actix_cors::Cors;
 use dotenvy::dotenv;
 use store::db::establish_pool;
 use telemetry::setup_observability;
@@ -22,7 +23,14 @@ async fn main() -> std::io::Result<()> {
     let db_pool = establish_pool();
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+            .allowed_headers(vec!["Content-Type"])
+            .max_age(3600);
+        
         App::new()
+            .wrap(cors)
             .app_data(web::Data::new(db_pool.clone()))
             .service(btc_dashboard)
             .service(historical_metrics)

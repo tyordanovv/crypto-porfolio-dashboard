@@ -10,10 +10,6 @@ interface MetricsDisplayProps {
 }
 
 export default function MetricsDisplay({ snapshots, macroMetrics }: MetricsDisplayProps) {
-  const formatMetricName = (name: string) => {
-    return name.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-  }
-
   const formatMetricValue = (name: string, value: number) => {
     if (name.includes("RETURN") || name.includes("DOMINANCE")) {
       return `${(value * 100).toFixed(2)}%`
@@ -58,7 +54,7 @@ export default function MetricsDisplay({ snapshots, macroMetrics }: MetricsDispl
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {snapshots.map((snapshot) =>
             snapshot.metrics.map((metric) => {
-              const displayName = formatMetricName(metric.formatedName)
+              const displayName = metric.formatedName
               const icon = getMetricIcon(metric.name, metric.value)
               const colorClass = getMetricColor(metric.name, metric.value)
 
