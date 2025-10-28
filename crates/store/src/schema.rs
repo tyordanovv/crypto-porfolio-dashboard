@@ -20,8 +20,6 @@ diesel::table! {
         timestamp -> Date,
         price_usd -> Float8,
         volume_usd -> Nullable<Float8>,
-        market_cap_usd -> Nullable<Float8>,
-        dominance -> Nullable<Float8>,
     }
 }
 

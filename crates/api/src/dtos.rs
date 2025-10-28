@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, str::FromStr};
 
 use domain::MarketSymbol;
 use serde::Serialize;
@@ -119,6 +119,7 @@ impl FearGreedIndex {
 #[derive(Serialize)]
 pub struct MacroMetrics {
     pub name: String,
+    pub formatted_name: String,
     pub value: f64,
     pub source: Option<String>,
 }
@@ -134,11 +135,19 @@ impl MacroMetrics {
             .into_iter()
             .filter(|entry| allowed.contains(&entry.name)) // only keep known metrics
             .filter_map(|entry| {
-                entry.value.map(|v| Self {
-                    name: entry.name,
-                    value: v,
-                    source: entry.source,
+                // only proceed if we have a value
+                entry.value.map(|v| {
+                    match MarketSymbol::from_str(&entry.name) {
+                        Ok(symbol) => Some(MacroMetrics {
+                            name: entry.name.clone(),
+                            value: v,
+                            source: entry.source.clone(),
+                            formatted_name: symbol.formatted_name().to_string(),
+                        }),
+                        Err(_) => None,
+                    }
                 })
+                .flatten()
             })
             .collect();
         

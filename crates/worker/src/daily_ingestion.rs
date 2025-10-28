@@ -73,7 +73,6 @@ impl IngestionJob for DailyIngestionJob {
     async fn store(&self, result: Self::Output) -> Result<()> {
         use tracing::{info, warn};
 
-        // Acquire connection asynchronously if your pool is async
         let mut conn = self.db_pool.get()
             .map_err(|e| anyhow::anyhow!("Failed to get DB connection: {e}"))?;
 

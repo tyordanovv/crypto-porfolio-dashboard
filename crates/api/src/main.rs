@@ -1,6 +1,8 @@
 mod dtos;
 mod handlers;
 
+use std::env;
+
 use actix_web::{web, App, HttpServer};
 use dotenvy::dotenv;
 use store::db::establish_pool;
@@ -12,6 +14,10 @@ use crate::handlers::{btc_dashboard, historical_metrics};
 async fn main() -> std::io::Result<()> {
     dotenv().ok();  
     setup_observability();
+    let port: u16 = env::var("PORT")
+        .expect("PORT must be set")
+        .parse()
+        .expect("PORT must be a valid u16 number");
 
     let db_pool = establish_pool();
 
@@ -21,7 +27,7 @@ async fn main() -> std::io::Result<()> {
             .service(btc_dashboard)
             .service(historical_metrics)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", port))?
     .run()
     .await
 }

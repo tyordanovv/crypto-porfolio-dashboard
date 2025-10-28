@@ -96,19 +96,21 @@ impl MarketSymbol {
         matches!(self, MarketSymbol::BtcUsd)
     }
 
-    pub fn btc_metrics() -> [MarketSymbol; 5] {
+    pub fn btc_metrics() -> [MarketSymbol; 6] {
         [
             MarketSymbol::BtcDominance,
             MarketSymbol::BtcStableRatio,
+            MarketSymbol::GlobalTotalBtcCapUsd,
             MarketSymbol::BtcReturn7d,
             MarketSymbol::BtcReturn30d,
             MarketSymbol::BtcReturn90d,
         ]
     }
 
-    pub fn eth_metrics() -> [MarketSymbol; 1] {
+    pub fn eth_metrics() -> [MarketSymbol; 2] {
         [
             MarketSymbol::EthDominance,
+            MarketSymbol::GlobalTotalEthCapUsd,
         ]
     }
 
@@ -143,6 +145,53 @@ impl MarketSymbol {
             MarketSymbol::UNRATE,
             MarketSymbol::FEDFUNDS,
         ]
+    }
+    
+    /// 1. All strings are compile-time constants.
+    /// Every match arm literal like "Bitcoin (BTC/USD)" lives in the programs binary forever.
+    /// 2. No allocation needed.
+    /// Returning String would allocate heap memory every time you call .formatted_name().
+    /// 3. Zero-cost and thread-safe.
+    /// &'static str references are immutable and globally valid
+    pub fn formatted_name(&self) -> &'static str {
+        match self {
+            // Core
+            MarketSymbol::BtcUsd => "Bitcoin (BTC/USD)",
+            MarketSymbol::EthUsd => "Ethereum (ETH/USD)",
+            MarketSymbol::Gold => "Gold (XAU/USD)",
+            MarketSymbol::Oil => "Crude Oil (WTI)",
+            MarketSymbol::Sp500 => "S&P 500 Index",
+            MarketSymbol::Nasdaq => "NASDAQ Composite",
+            MarketSymbol::UsdIndex => "U.S. Dollar Index (DXY)",
+
+            // Fed / Macro
+            MarketSymbol::DFF => "Federal Funds Effective Rate",
+            MarketSymbol::T10Y2Y => "10Y–2Y Treasury Yield Spread",
+            MarketSymbol::DEXUSEU => "USD to Euro Exchange Rate",
+            MarketSymbol::CPIAUCSL => "Consumer Price Index (CPI)",
+            MarketSymbol::DGS10 => "10-Year Treasury Yield",
+            MarketSymbol::DGS2 => "2-Year Treasury Yield",
+            MarketSymbol::M2SL => "M2 Money Supply (Billions USD)",
+            MarketSymbol::UNRATE => "Unemployment Rate (%)",
+            MarketSymbol::FEDFUNDS => "Federal Funds Target Rate",
+
+            // Crypto dominance & metrics
+            MarketSymbol::BtcDominance => "Bitcoin Dominance (%)",
+            MarketSymbol::EthDominance => "Ethereum Dominance (%)",
+            MarketSymbol::StablecoinDominance => "Stablecoin Market Share (%)",
+            MarketSymbol::BtcStableRatio => "BTC/Stablecoin Ratio",
+            MarketSymbol::BtcReturn7d => "Bitcoin 7-Day Return (%)",
+            MarketSymbol::BtcReturn30d => "Bitcoin 30-Day Return (%)",
+            MarketSymbol::BtcReturn90d => "Bitcoin 90-Day Return (%)",
+
+            // Global metrics
+            MarketSymbol::GlobalTotalMarketCapUsd => "Global Crypto Market Cap (USD)",
+            MarketSymbol::GlobalTotalStableCapUsd => "Global Stablecoin Market Cap (USD)",
+            MarketSymbol::GlobalTotalBtcCapUsd => "Total Bitcoin Market Cap (USD)",
+            MarketSymbol::GlobalTotalEthCapUsd => "Total Ethereum Market Cap (USD)",
+            MarketSymbol::GlobalTotalVolume24hUsd => "Global 24H Trading Volume (USD)",
+            MarketSymbol::FearGreedIndex => "Crypto Fear & Greed Index",
+        }
     }
 }
 

@@ -1,31 +1,26 @@
-use std::time::Duration;
-
 use domain::MarketSymbol;
 use web2::clients::M2Country;
 
 #[derive(Debug, Clone)]
 pub struct DailyWorkerConfig {
-    pub fred_series: Vec<String>,
+    pub fred_series: Vec<MarketSymbol>,
     pub crypto_pairs: Vec<MarketSymbol>,
     pub market_series: Vec<MarketSymbol>,
-    pub fetch_interval: Duration,
-    pub max_retries: u32,
-    pub retry_delay: Duration,
 }
 
 impl Default for DailyWorkerConfig {
     fn default() -> Self {
         Self {
             fred_series: vec![
-                "DFF".to_string(),      // Federal Funds Rate
-                "T10Y2Y".to_string(),   // 10Y-2Y Treasury Spread
-                "DEXUSEU".to_string(),  // USD/EUR Exchange Rate
-                "CPIAUCSL".to_string(), // Consumer Price Index
-                "DGS10".to_string(),    // 10-Year Treasury Constant Maturity Rate
-                "DGS2".to_string(),     // 2-Year Treasury Constant Maturity Rate
-                "M2SL".to_string(),     // M2 Money Stock
-                "UNRATE".to_string(),   // Unemployment Rate
-                "FEDFUNDS".to_string(), // Effective Federal Funds Rate
+                MarketSymbol::DFF,      // Federal Funds Rate
+                MarketSymbol::T10Y2Y,   // 10Y-2Y Treasury Spread
+                MarketSymbol::DEXUSEU,  // USD/EUR Exchange Rate
+                MarketSymbol::CPIAUCSL, // Consumer Price Index
+                MarketSymbol::DGS10,    // 10-Year Treasury Constant Maturity Rate
+                MarketSymbol::DGS2,     // 2-Year Treasury Constant Maturity Rate
+                MarketSymbol::M2SL,     // M2 Money Stock
+                MarketSymbol::UNRATE,   // Unemployment Rate
+                MarketSymbol::FEDFUNDS, // Effective Federal Funds Rate
             ],
             crypto_pairs: vec![
                 MarketSymbol::BtcUsd,
@@ -38,10 +33,7 @@ impl Default for DailyWorkerConfig {
                 MarketSymbol::Nasdaq,
                 MarketSymbol::UsdIndex,
 
-            ],
-            fetch_interval: Duration::from_secs(24 * 60 * 60), // 24 hours
-            max_retries: 3,
-            retry_delay: Duration::from_secs(60),
+            ]
         }
     }
 }
@@ -49,9 +41,6 @@ impl Default for DailyWorkerConfig {
 #[derive(Debug, Clone)]
 pub struct MontlyWorkerConfig {
     pub m2_countries: Vec<M2Country>,
-    pub fetch_interval: Duration,
-    pub max_retries: u32,
-    pub retry_delay: Duration,
 }
 
 impl Default for MontlyWorkerConfig {
@@ -64,10 +53,7 @@ impl Default for MontlyWorkerConfig {
                 M2Country::Japan,
                 M2Country::Canada,
                 M2Country::China
-            ],
-            fetch_interval: Duration::from_secs(24 * 60 * 60), // 24 hours
-            max_retries: 3,
-            retry_delay: Duration::from_secs(60),
+            ]
         }
     }
 }
