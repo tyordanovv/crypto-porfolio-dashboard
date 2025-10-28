@@ -54,11 +54,10 @@ export default function MetricsDisplay({ snapshots, macroMetrics }: MetricsDispl
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {snapshots.map((snapshot) =>
             snapshot.metrics.map((metric) => {
-              const displayName = metric.formatedName
               const icon = getMetricIcon(metric.name, metric.value)
               const colorClass = getMetricColor(metric.name, metric.value)
 
-              return (
+              return (  
                 <Card key={`${snapshot.symbol}-${metric.name}`} className="group relative overflow-hidden p-6">
                   <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-primary/5" />
                   <div className="relative space-y-3">
@@ -69,7 +68,7 @@ export default function MetricsDisplay({ snapshots, macroMetrics }: MetricsDispl
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">{displayName}</p>
+                      <p className="text-sm font-medium text-muted-foreground">{metric.formattedName}</p>
                       <p className="mt-1 text-2xl font-bold text-foreground">
                         {formatMetricValue(metric.name, metric.value)}
                       </p>

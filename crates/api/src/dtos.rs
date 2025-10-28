@@ -59,15 +59,23 @@ impl From<MarketDataDB> for TimeSeriesPrice {
 pub struct MarketMetric {
     pub timestamp: NaiveDate, 
     pub value: f64, 
-    pub name: String 
+    pub name: String,
+    #[serde(rename = "formattedName")]
+    pub formatted_name: String
 }
 
 impl From<MarketMetricDataDB> for MarketMetric {
     fn from(mm: MarketMetricDataDB) -> Self {
+        let formatted_name = match MarketSymbol::from_str(&mm.name) {
+            Ok(symbol) => symbol.formatted_name().to_string(),
+            Err(_) => mm.name.clone(), // fallback if unknown
+        };
+
         Self {
             timestamp: mm.timestamp,
             value: mm.value.unwrap_or(0.0),
             name: mm.name,
+            formatted_name,
         }
     }
 }

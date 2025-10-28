@@ -10,20 +10,21 @@ export interface MetricData {
   timestamp: string
   value: number
   name: string
-  formatedName: string
+  formattedName: string
 }
 
 export interface AssetSnapshot {
   symbol: string
+  formattedName: string
   prices: PriceData[]
   metrics: MetricData[]
 }
 
 export interface MacroMetricData {
   name: string
+  formattedName: string
   value: number
   source: string
-  formattedName: string
 }
 
 export interface DashboardResponse {
