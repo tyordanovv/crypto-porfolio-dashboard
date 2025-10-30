@@ -1,5 +1,6 @@
 mod dtos;
 mod handlers;
+mod errors;
 
 use std::env;
 
@@ -20,7 +21,7 @@ async fn main() -> std::io::Result<()> {
         .parse()
         .expect("PORT must be a valid u16 number");
 
-    let db_pool = establish_pool();
+        let db_pool = establish_pool();
 
     HttpServer::new(move || {
         let cors = Cors::default()

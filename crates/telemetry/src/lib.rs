@@ -1,10 +1,10 @@
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 pub fn setup_observability() {
-    // Metrics
-    metrics_exporter_prometheus::PrometheusBuilder::new()
-        .install()
-        .expect("failed to install Prometheus recorder");
+    // // Metrics
+    // metrics_exporter_prometheus::PrometheusBuilder::new()
+    //     .install()
+    //     .expect("failed to install Prometheus recorder");
 
     // Tracing/Logging
     tracing_subscriber::registry()

@@ -4,7 +4,7 @@ use actix_web::{get, HttpResponse};
 use domain::MarketSymbol;
 use serde::Deserialize;
 use store::{db::PgPool, repositories::{market_data_repository::MarketDataRepo, market_metrics_repository::MarketMetricRepo}};
-use crate::dtos::*;
+use crate::{dtos::*, errors::ApiErrorResponse};
 use actix_web::{web, Result};
 
 #[get("/api/dashboard")]
@@ -39,12 +39,12 @@ async fn historical_metrics(
     query: web::Query<HistoricalMetricsQuery>,
 ) -> Result<HttpResponse> {
     let mut conn = db_pool.get()
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+        .map_err(|_| ApiErrorResponse::internal("Cannot use the connection with the database!"))?;
 
-    let symbol = MarketSymbol::from_str(query.symbol.as_str()).unwrap();
-    let days = query.days;
+    let symbol = MarketSymbol::from_str(&query.symbol)
+        .map_err(|_| ApiErrorResponse::bad_request(format!("Invalid symbol: {}", query.symbol)))?;
 
-    let data = MarketMetricRepo::latest_n(&mut conn, symbol, days)
+    let data = MarketMetricRepo::latest_n(&mut conn, symbol, query.days)
         .await
         .map_err(actix_web::error::ErrorInternalServerError)?;
 
