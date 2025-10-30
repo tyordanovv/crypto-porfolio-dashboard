@@ -128,6 +128,7 @@ pub struct MacroMetrics {
     pub name: String,
     #[serde(rename = "formattedName")]
     pub formatted_name: String,
+    pub timestamp: NaiveDate,
     pub value: f64,
     pub source: Option<String>,
 }
@@ -148,9 +149,10 @@ impl MacroMetrics {
                     match MarketSymbol::from_str(&entry.name) {
                         Ok(symbol) => Some(MacroMetrics {
                             name: entry.name.clone(),
-                            value: v,
-                            source: entry.source.clone(),
                             formatted_name: symbol.formatted_name().to_string(),
+                            timestamp: entry.timestamp,
+                            value: v,
+                            source: entry.source.clone()
                         }),
                         Err(_) => None,
                     }

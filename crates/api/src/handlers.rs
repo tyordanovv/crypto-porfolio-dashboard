@@ -10,7 +10,7 @@ use actix_web::{web, Result};
 #[get("/api/dashboard")]
 async fn btc_dashboard(db_pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let mut conn = db_pool.get()
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+        .map_err(|_| ApiErrorResponse::internal("Cannot use the connection with the database!"))?;
 
     let latest_btc_values = MarketDataRepo::latest_n_for_asset(&mut conn, MarketSymbol::BtcUsd, 365).await.unwrap();
     let latest_btc_metrics = MarketMetricRepo::latest_array_metrics(&mut conn, &MarketSymbol::btc_metrics()).await.unwrap();
@@ -39,14 +39,14 @@ async fn historical_metrics(
     query: web::Query<HistoricalMetricsQuery>,
 ) -> Result<HttpResponse> {
     let mut conn = db_pool.get()
-        .map_err(|_| ApiErrorResponse::internal("Cannot use the connection with the database!"))?;
+        .map_err(|_| ApiErrorResponse::internal("Cannot use the connection with the database"))?;
 
     let symbol = MarketSymbol::from_str(&query.symbol)
         .map_err(|_| ApiErrorResponse::bad_request(format!("Invalid symbol: {}", query.symbol)))?;
 
     let data = MarketMetricRepo::latest_n(&mut conn, symbol, query.days)
         .await
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+        .map_err(|_| ApiErrorResponse::internal(format!("Cannot fetch {} from database for the last {} days", &query.symbol, query.days)))?;
 
     Ok(HttpResponse::Ok().json(MacroMetrics::from_market_data(data)))
 }
